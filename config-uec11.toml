@@ -1,0 +1,24 @@
+# 第11回UECテスト・サーバー
+
+[host]
+# v4 と v6 は区別します。localhost は環境依存です。
+# nngs1.3-ize.jp:9696
+# domain = "nngs1.3-ize.jp"
+# Who is で IPアドレスを調べる。
+domain = "3.115.247.120"
+port = 9696
+
+[game]
+
+# 自分。1 or 2.
+player_number = 1
+
+player1_name = "Kifuwarabe"
+player2_name = "Warabemoti"
+first_color = "b"
+board_size = 19
+time_minutes = 30
+seconds_read = 0
+
+# コマンドを連続して早く送り過ぎないようにするための間隔。
+command_interval_msec = 200
