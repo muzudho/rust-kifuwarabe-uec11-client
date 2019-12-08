@@ -59,6 +59,28 @@ async fn connect() {
             let cmd_msec = go.command_interval_msec.unwrap();
             println!("Info    | command_interval_msec=[{}]", &cmd_msec);
 
+            let my_color = if first_color == "b" {
+                match player_number {
+                    1 => "b",
+                    2 => "w",
+                    _ => "admin",
+                }
+            } else {
+                match player_number {
+                    1 => "w",
+                    2 => "b",
+                    _ => "admin",
+                }
+            };
+            println!("Info    | my_color=[{}]", &my_color);
+
+            let opponent_name = match my_color {
+                "b" => &player2_name,
+                "w" => &player1_name,
+                _ => "unknown",
+            };
+            println!("Info    | opponent_name=[{}]", &opponent_name);
+
             // サーバー・プログラムなら TCPリスナーを作成し、クライアント・プログラムなら TCPストリームを取得する。
             // https://docs.rs/tokio-tcp/0.1.2/src/tokio_tcp/stream.rs.html#49-58
             match TcpStream::connect(&addr).await {
@@ -85,6 +107,7 @@ async fn connect() {
                         match player_number {
                             1 => &player1_name,
                             2 => &player2_name,
+                            3 => "admin", // テスト用アドミン。
                             _ => panic!("Error   | Invalid player number. =[{}]", player_number),
                         },
                     )
@@ -93,27 +116,46 @@ async fn connect() {
                     // Interval.
                     println!("Trace   | Please wait for {} ms.", cmd_msec);
                     std::thread::sleep(std::time::Duration::from_millis(cmd_msec));
-                    // マッチ・コマンドを送る。
-                    write_message_to_server(
-                        &mut stream,
-                        &format!(
-                            "adminmatch {} {} {} {} {} {}",
-                            player1_name,
-                            player2_name,
-                            first_color,
-                            board_size,
-                            time_minutes,
-                            seconds_read
-                        ),
-                    )
-                    .await;
 
-                    // `Use <match kifuwarabe W 19 30 0> or <decline kifuwarabe> to respond.`
-                    // といったメッセージが送られてくるのを待つ。
-                    show_message_from_server(&mut stream).await;
+                    if player_number == 3 {
+                        // アドミン・マッチ・コマンドを送る。
+                        write_message_to_server(
+                            &mut stream,
+                            &format!(
+                                "adminmatch {} {} {} {} {} {}",
+                                player1_name,
+                                player2_name,
+                                first_color,
+                                board_size,
+                                time_minutes,
+                                seconds_read
+                            ),
+                        )
+                        .await;
+                    } else {
+                        // TODO `Use <match kifuwarabe W 19 30 0> or <decline kifuwarabe> to respond.`
+                        // といったメッセージが送られてくるのを待つ。
+                        show_message_from_server(&mut stream).await;
 
-                    // `match kifuwarabe W 19 30 0`
-                    // といったメッセージを送る。
+                        // Interval.
+                        println!("Trace   | Please wait for {} ms.", cmd_msec);
+                        std::thread::sleep(std::time::Duration::from_millis(cmd_msec));
+
+                        // 対局了承コマンド `match kifuwarabe W 19 30 0`
+                        // といったメッセージを送る。
+                        write_message_to_server(
+                            &mut stream,
+                            &format!(
+                                "match {} {} {} {} {}",
+                                opponent_name.to_lowercase(), // 小文字。
+                                my_color.to_uppercase(),      // 自分の色の大文字。
+                                board_size,
+                                time_minutes,
+                                seconds_read
+                            ),
+                        )
+                        .await;
+                    }
 
                     // 対局がついていれば盤面が送られてくるので、それまで待つ。
 

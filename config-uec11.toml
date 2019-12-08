@@ -10,12 +10,15 @@ port = 9696
 
 [game]
 
-# 自分。1 or 2.
+# 自分。1 or 2. テスト用アドミンなら 3。
 player_number = 1
 
 player1_name = "Kifuwarabe"
 player2_name = "Warabemoti"
+
+# 先手が黒なら "b", 先手が白なら "w"。
 first_color = "b"
+
 board_size = 19
 time_minutes = 30
 seconds_read = 0
